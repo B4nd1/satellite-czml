@@ -4,6 +4,7 @@ from .czml import (CZML, Billboard, CZMLPacket, Description, Label,
 from datetime import datetime, timedelta, timezone
 
 
+
 class Plane:
     """
     CZML representation of an airplane following a list of coordinates.
