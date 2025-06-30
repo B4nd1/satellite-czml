@@ -124,6 +124,7 @@ czml_string = czml_obj.get_czml()
 ## Working with Flight Paths and Ground Stations
 
 In addition to TLE-based satellites, you can now define **custom flight paths** using `(lon, lat, alt)` coordinates and **ground stations** using the `GroundStation` class.
+You can find more examples in the Jupyter notebook example [how_to_add_planes.ipynb](./how_to_add_planes.ipynb).
 
 ### Example: Flight Path Coordinates
 
@@ -136,6 +137,10 @@ coords = [
     (-121.4, 38.3, 1500),
     (-120.9, 38.7, 1800),
 ]
+
+plane = Plane(coords=coords, id='ID', name="Flight Test",
+              start_time=datetime(2025, 9, 2, 11, 0, tzinfo=timezone.utc),
+              end_time=datetime(2025, 9, 2, 11, 30, tzinfo=timezone.utc), show_path=False)
 ```
 
 You can generate multiple paths in similar fashion and use them as inputs for visualization or CZML generation extensions.
@@ -149,6 +154,8 @@ station = GroundStation(
     lon=13.41,
     lat=52.52,
     alt=34,
+    start_time=datetime(2025, 9, 2, 11, 0, tzinfo=timezone.utc),
+    end_time=datetime(2025, 9, 2, 11, 30, tzinfo=timezone.utc),
     id="GS_Berlin",
     name="Berlin Ground Station"
 )
