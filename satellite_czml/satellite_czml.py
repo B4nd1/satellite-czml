@@ -367,7 +367,7 @@ class satellite:
         return trail_times
 
 
-class satellite_czml():
+class satellite_czml:
     """
     Generates the CZML document used by Cesium for plotting Satellites
     using TLE entries
