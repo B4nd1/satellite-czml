@@ -16,8 +16,6 @@
 #    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-
-
 ####
 # Changes made by Shane Carty for the Orbital prediction web application are highighted by: "# edit"
 ###
@@ -51,10 +49,9 @@ except NameError:
     # Python 3
     basestring = unicode = str
 
+
 # XXX Import the geometries from shapely if it is installed
 # or otherwise from Pygeoif
-
-
 
 
 def grouper(iterable, n, fillvalue=None):
@@ -127,6 +124,7 @@ def datetime_property(name, allow_offset=False, doc=None):
             raise ValueError
 
     return property(getter, setter, doc=doc)
+
 
 # Many classes will have material and position properties.
 material_property = lambda x: class_property(Material, x)
@@ -221,6 +219,7 @@ class CZML(_CZMLBaseObject):
         else:
             raise ValueError
 
+
 class _DateTimeAware(_CZMLBaseObject):
     """ A baseclass for Date time aware objects """
 
@@ -230,18 +229,18 @@ class _DateTimeAware(_CZMLBaseObject):
     _properties = ('epoch', 'nextTime', 'previousTime')
 
     epoch = datetime_property('epoch', doc=
-        """ Specifies the epoch to use for times specifies as seconds
-        since an epoch. """)
+    """ Specifies the epoch to use for times specifies as seconds
+    since an epoch. """)
     nextTime = datetime_property('nextTime', allow_offset=True, doc=
-        """The time of the next sample within this interval, specified as
-        either an ISO 8601 date and time string or as seconds since epoch.
-        This property is used to determine if there is a gap between samples
-        specified in different packets.""")
+    """The time of the next sample within this interval, specified as
+    either an ISO 8601 date and time string or as seconds since epoch.
+    This property is used to determine if there is a gap between samples
+    specified in different packets.""")
     previousTime = datetime_property('previousTime', allow_offset=True, doc=
-        """The time of the previous sample within this interval, specified
-        as either an ISO 8601 date and time string or as seconds since epoch.
-        This property is used to determine if there is a gap between samples
-        specified in different packets.""")
+    """The time of the previous sample within this interval, specified
+    as either an ISO 8601 date and time string or as seconds since epoch.
+    This property is used to determine if there is a gap between samples
+    specified in different packets.""")
 
 
 class _Coordinate(object):
@@ -271,7 +270,6 @@ class _Coordinate(object):
 
 
 class _Coordinates(object):
-
     coords = None
 
     def __init__(self, coords):
@@ -288,12 +286,12 @@ class _Coordinates(object):
                     self.coords = []
                     for coord in grouper(coords, 4):
                         self.coords.append(_Coordinate(coord[1], coord[2],
-                                                coord[3], coord[0]))
+                                                       coord[3], coord[0]))
             except TypeError:
                 self.coords = []
                 for coord in grouper(coords, 2):
                     geom = asShape(coord[1])
-                    assert(isinstance(geom, geometry.Point))
+                    assert (isinstance(geom, geometry.Point))
                     self.coords.append(_Coordinate(*geom.coords[0], t=coord[0]))
         else:
             geom = asShape(coords)
@@ -305,7 +303,7 @@ class _Coordinates(object):
         if self.coords:
             for coord in self.coords:
                 if isinstance(coord.t, (date, datetime)):
-                     d.append(coord.t.isoformat())
+                    d.append(coord.t.isoformat())
                 elif coord.t is None:
                     pass
                 else:
@@ -327,17 +325,15 @@ class Number(_DateTimeAware):
     def data(self):
         data = super(Number, self).data()
         if (('number' in data) and (len(data.keys()) == 1) and
-            isinstance(data['number'], (int, float, str, long))):
+                isinstance(data['number'], (int, float, str, long))):
             return data['number']
         return super(Number, self).data()
-
 
 
 class Position(_DateTimeAware):
     """ The position of the object in the world. The position has no
     direct visual representation, but it is used to locate billboards,
     labels, and other primitives attached to the object. """
-
 
     # The reference frame in which cartesian positions are specified.
     # Possible values are "FIXED" and "INERTIAL". In addition, the value
@@ -398,7 +394,6 @@ class Position(_DateTimeAware):
         else:
             self._cartographicDegrees = None
 
-
     @property
     def cartographicRadians(self):
         """The position represented as a WGS 84 Cartographic
@@ -423,7 +418,6 @@ class Radii(_DateTimeAware):
     """ Radii is in support of ellipsoids.  This class is nearly an identical
     copy of the Position class since its behavior is almost the same.
     """
-
 
     # The reference frame in which cartesian positions are specified.
     # Possible values are "FIXED" and "INERTIAL". In addition, the value
@@ -462,6 +456,7 @@ class Radii(_DateTimeAware):
         super(Radii, self).load(data)
         self.cartesian = data.get('cartesian', None)
 
+
 class _Color(object):
     r = g = b = a = 0
     t = None
@@ -486,7 +481,6 @@ class _Color(object):
             raise ValueError
 
 
-
 class _Colors(object):
     """ The color specified as an array of color components
     [Red, Green, Blue, Alpha].
@@ -509,7 +503,7 @@ class _Colors(object):
                 self.colors = []
                 for color in grouper(colors, 5):
                     self.colors.append(_Color(color[1], color[2],
-                                            color[3], color[4] , color[0], num=num))
+                                              color[3], color[4], color[0], num=num))
             else:
                 raise ValueError
         elif colors is None:
@@ -522,7 +516,7 @@ class _Colors(object):
         if self.colors:
             for color in self.colors:
                 if isinstance(color.t, (date, datetime)):
-                     d.append(color.t.isoformat())
+                    d.append(color.t.isoformat())
                 elif color.t is None:
                     pass
                 else:
@@ -535,7 +529,6 @@ class _Colors(object):
 
 
 class Color(_DateTimeAware):
-
     _rgba = None
     _rgbaf = None
 
@@ -582,6 +575,7 @@ class Color(_DateTimeAware):
         else:
             self._rgbaf = _Colors(colors, num=float)
 
+
 class Scale(_DateTimeAware):
     """ The scale of the billboard. The scale is multiplied with the
     pixel size of the billboard's image. For example, if the scale is 2.0,
@@ -589,7 +583,6 @@ class Scale(_DateTimeAware):
     in each direction, of the image."""
 
     _number = None
-
 
     @property
     def number(self):
@@ -604,9 +597,9 @@ class Scale(_DateTimeAware):
             val = []
             for d in grouper(self._number, 2):
                 if isinstance(d[0], (int, long, float)):
-                     val.append(d[0])
+                    val.append(d[0])
                 else:
-                     val.append(d[0].isoformat())
+                    val.append(d[0].isoformat())
             return val
         else:
             return self._number
@@ -620,7 +613,7 @@ class Scale(_DateTimeAware):
                     v = float(d[1])
                     t = d[0]
                     if isinstance(t, (date, datetime)):
-                       t = t
+                        t = t
                     elif isinstance(t, (int, long, float)):
                         t = float(t)
                     elif isinstance(t, basestring):
@@ -642,6 +635,7 @@ class Scale(_DateTimeAware):
             d['number'] = self.number
         return d
 
+
 class Billboard(_CZMLBaseObject):
     """A billboard, or viewport-aligned image. The billboard is positioned
     in the scene by the position property.
@@ -660,10 +654,8 @@ class Billboard(_CZMLBaseObject):
 
     scale = None
 
-    #_properties = ('show','image','color','scale')   # edit
-    _properties = ('show','image','scale')
-
-
+    # _properties = ('show','image','color','scale')   # edit
+    _properties = ('show', 'image', 'scale')
 
 
 class Clock(_CZMLBaseObject):
@@ -686,8 +678,8 @@ class _Positions(object):
 
     def __init__(self, coords):
         if isinstance(coords, (list, tuple)):
-            assert(len(coords) % 3 == 0)
-            assert(len(coords) >= 6)
+            assert (len(coords) % 3 == 0)
+            assert (len(coords) >= 6)
             for coord in coords:
                 if isinstance(coord, (int, long, float)):
                     continue
@@ -738,16 +730,14 @@ class Positions(_CZMLBaseObject):
     _cartographicRadians = None
     _cartographicDegrees = None
 
-
     def __init__(self, referenceFrame=None,
-            cartesian=None, cartographicRadians=None,
-            cartographicDegrees=None, references=None):
+                 cartesian=None, cartographicRadians=None,
+                 cartographicDegrees=None, references=None):
         self.cartesian = cartesian
         self.cartographicRadians = cartographicRadians
         self.cartographicDegrees = cartographicDegrees
         self.referenceFrame = referenceFrame
         self.references = references
-
 
     @property
     def cartesian(self):
@@ -779,7 +769,6 @@ class Positions(_CZMLBaseObject):
         else:
             self._cartographicDegrees = None
 
-
     @property
     def cartographicRadians(self):
         """The list of positions represented as WGS 84
@@ -800,7 +789,6 @@ class Positions(_CZMLBaseObject):
         self.cartographicRadians = data.get('cartographicRadians', None)
         self.cartesian = data.get('cartesian', None)
 
-
     def data(self):
         d = {}
         if self.cartographicDegrees:
@@ -810,7 +798,6 @@ class Positions(_CZMLBaseObject):
         if self.cartesian:
             d['cartesian'] = self.cartesian.data()
         return d
-
 
 
 class Orientation(_DateTimeAware):
@@ -850,13 +837,12 @@ class Point(_CZMLBaseObject):
     pixelSize = None
 
     def __init__(self, show=False, color=None, pixelSize=None,
-                outlineColor=None, outlineWidth=None):
+                 outlineColor=None, outlineWidth=None):
         self.show = show
         self.color = color
         self.pixelSize = pixelSize
         self.outlineColor = outlineColor
         self.outlineWidth = outlineWidth
-
 
     @property
     def color(self):
@@ -896,14 +882,11 @@ class Point(_CZMLBaseObject):
         else:
             raise TypeError
 
-
-
-
     def data(self):
         d = {}
         if self.show:
             d['show'] = True
-        if not self.show:
+        if self.show == False:
             d['show'] = False
         if self.color:
             d['color'] = self.color
@@ -924,7 +907,6 @@ class Point(_CZMLBaseObject):
         self.outlineWidth = data.get('outlineWidth', None)
 
 
-
 class Label(_CZMLBaseObject):
     """ A string of text.
     The label is positioned in the scene by the position property."""
@@ -939,12 +921,9 @@ class Label(_CZMLBaseObject):
     fillColor = None
     font = None
     outlineColor = None
-    outlineWidth = None	
+    outlineWidth = None
+
     # edit end
-
-
-
-
 
     def __init__(self, text=None, show=False):
         self.text = text
@@ -954,7 +933,7 @@ class Label(_CZMLBaseObject):
         d = {}
         if self.show:
             d['show'] = True
-        if not self.show:
+        if self.show == False:
             d['show'] = False
         if self.text:
             d['text'] = self.text
@@ -971,7 +950,7 @@ class Label(_CZMLBaseObject):
         if self.outlineColor:
             d['outlineColor'] = self.outlineColor
         if self.outlineWidth:
-            d['outlineWidth'] = self.outlineWidth	# edit end		
+            d['outlineWidth'] = self.outlineWidth  # edit end
         return d
 
     def load(self, data):
@@ -1068,10 +1047,10 @@ class Path(_DateTimeAware, _CZMLBaseObject):
     width = class_property(Number, 'width')
 
     _leadTime = None
-    #leadTime = class_property(Number, 'leadTime');   # edit
+    # leadTime = class_property(Number, 'leadTime');   # edit
 
     _trailTime = None
-    #trailTime = class_property(Number, 'trailTime');
+    # trailTime = class_property(Number, 'trailTime');
 
     _resolution = None
     resolution = class_property(Number, 'resolution')
@@ -1208,6 +1187,7 @@ class Ellipsoid(_DateTimeAware):
         self.material = data.get('material', None)
         self.radii = data.get('radii', None)
 
+
 class Cone(_DateTimeAware, _CZMLBaseObject):
     """ A cone starts at a point or apex and extends in a circle of
     directions which all have the same angular separation from the Z-axis
@@ -1270,6 +1250,7 @@ class Cone(_DateTimeAware, _CZMLBaseObject):
             # TODO: Finish entering these.
         return d
 
+
 class Pyramid(_CZMLBaseObject):
     """A pyramid starts at a point or apex and extends in a specified list
     of directions from the apex. Each pair of directions forms a face of
@@ -1282,26 +1263,28 @@ class Camera(_CZMLBaseObject):
     """A camera."""
     pass
 
+
 class Description(_CZMLBaseObject):
     string = None
     reference = None
-    
+
     def __init__(self, string=None, reference=None):
         self.string = string
         self.reference = reference
-    
+
     def data(self):
         d = {}
         if self.string:
             d['string'] = self.string
         if self.reference:
             d['reference'] = self.reference
-        #return d
-        return self.string # edit
-    
+        # return d
+        return self.string  # edit
+
     def load(self, data):
         self.string = data.get('string', None)
         self.reference = data.get('reference', None)
+
 
 class CZMLPacket(_CZMLBaseObject):
     """  A CZML packet describes the graphical properties for a single
@@ -1397,18 +1380,18 @@ class CZMLPacket(_CZMLBaseObject):
     # try adding description
     _description = None
 
-
-
-    _properties = ('id', 'description', 'version', 'availability', 'billboard', 'clock', 'position', 'label', 'point', 'positions', 'polyline', 'polygon', 'path', 'orientation', 'ellipse', 'ellipsoid', 'cone', 'pyramid')
+    _properties = (
+    'id', 'description', 'version', 'availability', 'billboard', 'clock', 'position', 'label', 'point', 'positions',
+    'polyline', 'polygon', 'path', 'orientation', 'ellipse', 'ellipsoid', 'cone', 'pyramid')
 
     # TODO: Figure out how to set __doc__ from here.
     # position = class_property(Position, 'position')
-    
+
     @property
     def description(self):
-      if self._description is not None:
-        return self._description.data()
-    
+        if self._description is not None:
+            return self._description.data()
+
     @description.setter
     def description(self, description):
         if isinstance(description, Description):
@@ -1418,10 +1401,10 @@ class CZMLPacket(_CZMLBaseObject):
             d.load(description)
             self._description = d
         elif description is None:
-            self._description = None		
+            self._description = None
         else:
             raise TypeError
-    
+
     @property
     def position(self):
         """The position of the object in the world. The position has no direct
@@ -1444,7 +1427,6 @@ class CZMLPacket(_CZMLBaseObject):
         else:
             raise TypeError
 
-
     @property
     def label(self):
         """A string of text. The label is positioned in the scene by the
@@ -1464,8 +1446,6 @@ class CZMLPacket(_CZMLBaseObject):
             self._label = None
         else:
             raise TypeError
-
-
 
     @property
     def billboard(self):
@@ -1587,7 +1567,6 @@ class CZMLPacket(_CZMLBaseObject):
             self._positions = None
         else:
             raise TypeError
-
 
     @property
     def polyline(self):

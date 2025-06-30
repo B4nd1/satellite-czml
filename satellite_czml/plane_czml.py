@@ -1,12 +1,7 @@
 from .czml import (CZML, Billboard, CZMLPacket, Description, Label,
                    Path, Position, Point)
-from sgp4.earth_gravity import wgs84
-from sgp4.io import twoline2rv
 
 from datetime import datetime, timedelta, timezone
-import pytz
-import random
-import math
 
 
 class Plane:
