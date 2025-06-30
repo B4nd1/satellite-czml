@@ -5,7 +5,7 @@ Creates a CZML string based on TLE (Two Line Element set) data for plotting sate
 CesiumJS is a WebGL earth modeling engine which allows for time annimated displays of satellites using 3D and 2D interactive maps in the web browser.  A CZML file/string is used by CesiumJS to show a time animation such as in this [example](https://sandcastle.cesium.com/?src=CZML.html).  Each [Two-Line Element set (TLE)](https://www.celestrak.com/NORAD/documentation/tle-fmt.php) contains orbit information for a single satellite.  Since satellites drift and maneuver, these become out-of-date and new TLEs must be published.  [Space-Track.org](https://www.space-track.org/) is an excellent resource for getting up-to-date and historic TLE data via their free API.  There is also a [spacetrack](https://pypi.org/project/spacetrack/) python package which interfaces with this API for you.
 
 ## Installation
-`pip install satellite-czml`
+`pip install git+https://github.com/B4nd1/satellite-czml.git`
 
 ## Usage
 This library contains two classes to aid in the generation of CZML strings.
@@ -120,6 +120,40 @@ czml_string = czml_obj.get_czml()
 ```
 
 ![Modifying Example](screenshots/modified_czml.png "Modifying Example")
+
+## Working with Flight Paths and Ground Stations
+
+In addition to TLE-based satellites, you can now define **custom flight paths** using `(lon, lat, alt)` coordinates and **ground stations** using the `GroundStation` class.
+
+### Example: Flight Path Coordinates
+
+Define a simple 4-point flight path:
+
+```python
+coords = [
+    (-122.4, 37.6, 1000),
+    (-121.9, 38.0, 1200),
+    (-121.4, 38.3, 1500),
+    (-120.9, 38.7, 1800),
+]
+```
+
+You can generate multiple paths in similar fashion and use them as inputs for visualization or CZML generation extensions.
+
+### Example: Ground Station Definitions
+
+You can create ground stations like this:
+
+```python
+station = GroundStation(
+    lon=13.41,
+    lat=52.52,
+    alt=34,
+    id="GS_Berlin",
+    name="Berlin Ground Station"
+)
+```
+
 
 ## Thank You
 Special thanks to [Shane Carty](https://pypi.org/user/kujosHeist/), [Christian Ledermann](https://pypi.org/user/Christian.Ledermann/) and [Brandon Rhodes](https://pypi.org/user/brandonrhodes/) for your work which made this package possible.
