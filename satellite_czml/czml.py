@@ -36,7 +36,7 @@ from datetime import date, datetime
 
 import dateutil.parser
 from pygeoif import geometry
-from pygeoif.geometry import as_shape as asShape
+from pygeoif import shape as asShape
 from pytz import utc
 
 try:
@@ -903,7 +903,7 @@ class Point(_CZMLBaseObject):
         d = {}
         if self.show:
             d['show'] = True
-        if self.show == False:
+        if not self.show:
             d['show'] = False
         if self.color:
             d['color'] = self.color
@@ -934,17 +934,17 @@ class Label(_CZMLBaseObject):
     horizontalOrigin = None
     scale = None
     pixelOffset = None
-	
-	# edit start
+
+    # edit start
     fillColor = None
     font = None
     outlineColor = None
     outlineWidth = None	
-	# edit end
-    	
-	
+    # edit end
 
-	
+
+
+
 
     def __init__(self, text=None, show=False):
         self.text = text
@@ -954,7 +954,7 @@ class Label(_CZMLBaseObject):
         d = {}
         if self.show:
             d['show'] = True
-        if self.show == False:
+        if not self.show:
             d['show'] = False
         if self.text:
             d['text'] = self.text
@@ -1065,7 +1065,7 @@ class Path(_DateTimeAware, _CZMLBaseObject):
     show = None
 
     _width = None
-    width = class_property(Number, 'width');
+    width = class_property(Number, 'width')
 
     _leadTime = None
     #leadTime = class_property(Number, 'leadTime');   # edit
@@ -1074,13 +1074,13 @@ class Path(_DateTimeAware, _CZMLBaseObject):
     #trailTime = class_property(Number, 'trailTime');
 
     _resolution = None
-    resolution = class_property(Number, 'resolution');
+    resolution = class_property(Number, 'resolution')
 
     _material = None
     material = class_property(Material, 'material')
 
     _position = None
-    position = class_property(Position, 'position');
+    position = class_property(Position, 'position')
 
     _properties = ('show', 'width', 'leadTime', 'trailTime',
                    'resolution', 'material', 'position')
@@ -1093,13 +1093,13 @@ class Polyline(_DateTimeAware, _CZMLBaseObject):
     followSurface = None
 
     _width = None
-    width = class_property(Number, 'width');
+    width = class_property(Number, 'width')
 
     _material = None
     material = class_property(Material, 'material')
 
     _positions = None
-    positions = class_property(Positions, 'positions');
+    positions = class_property(Positions, 'positions')
 
     _properties = ('show', 'followSurface', 'width', 'material', 'positions')
 
@@ -1131,7 +1131,7 @@ class Polygon(_DateTimeAware, _CZMLBaseObject):
     material = class_property(Material, 'material')
 
     _positions = None
-    positions = class_property(Positions, 'positions');
+    positions = class_property(Positions, 'positions')
 
     _properties = ('show', 'fill', 'height', 'outline', 'stRotation',
                    'granularity', 'extrudedHeight', 'perPositionHeight',
@@ -1177,7 +1177,7 @@ class Ellipse(_DateTimeAware, _CZMLBaseObject):
     material = class_property(Material, 'material')
 
     _position = None
-    position = class_property(Position, 'position');
+    position = class_property(Position, 'position')
 
     _properties = ('show', 'fill', 'outline', 'height', 'rotation', 'stRotation',
                    'granularity', 'extrudedHeight', 'semiMajorAxis', 'semiMinorAxis',
@@ -1396,8 +1396,8 @@ class CZMLPacket(_CZMLBaseObject):
 
     # try adding description
     _description = None
-	
-	
+
+
 
     _properties = ('id', 'description', 'version', 'availability', 'billboard', 'clock', 'position', 'label', 'point', 'positions', 'polyline', 'polygon', 'path', 'orientation', 'ellipse', 'ellipsoid', 'cone', 'pyramid')
 

@@ -4,19 +4,20 @@
 
 from .czml import (CZML, Billboard, CZMLPacket, Description, Label,
                    Path, Position, Point)
-from sgp4.earth_gravity import wgs72
+from sgp4.earth_gravity import wgs84
 from sgp4.io import twoline2rv
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytz
 import random
 import math
 
-class satellite():
-    '''
+
+class satellite:
+    """
     Creates an instance of a satellite to be included in the CZML document
     based on a TLE
-    '''
+    """
     id = ''
     name = ''
     description = ''
@@ -30,16 +31,16 @@ class satellite():
     marker_scale = 1.5
     show_label = True
     show_path = True
-    start_time = datetime.utcnow().replace(tzinfo=pytz.UTC)
+    start_time = datetime.now(timezone.utc)
     end_time = start_time + timedelta(hours=24)
     tle = []
     tle_obj = None
-    
+
     czmlMarker = None
     czmlLabel = None
     czmlPath = None
     czmlPosition = None
-    
+
     def __init__(self, tle, name=None, description=None, color=None, image=None,
                  marker_scale=None, use_default_image=True, start_time=None, end_time=None,
                  show_label=True, show_path=True):
@@ -81,35 +82,35 @@ class satellite():
         if end_time is not None:
             self.end_time = end_time
 
-        self.tle_obj = twoline2rv(self.tle[0], self.tle[1], wgs72)
+        self.tle_obj = twoline2rv(self.tle[0], self.tle[1], wgs84)
 
     def __check_tle_for_names(self, tle):
-        '''
+        """
         Checks if TLE has a name by seeing if 3 records exist
         (name, TLE1, TLE2) when name_list is None
-        '''
+        """
         if len(tle) != 3:
             raise Exception(f"Satellite TLE only has {len(tle)} elements.  Expected 3 " +
                             f"or pass in a name.\nTLE:\n{tle}")
         return tle[1:]
 
     def __check_tle(self, tle):
-        '''
-        Checks if TLE has either 2 or 3 records 
+        """
+        Checks if TLE has either 2 or 3 records
         [name (optional), TLE1, TLE2]
-        '''
-        if len(tle) not in [2,3]:
+        """
+        if len(tle) not in [2, 3]:
             raise Exception(f"Satellite TLE only has {len(tle)} elements.  Expected 2 or 3." +
                             f"(first line containing name is optional\nTLE:\n{tle}")
         return tle
 
     def __check_color(self, color):
-        '''
+        """
         Checks if color is valid or generates a random one
-        '''
-        if color is not None and len(color) not in [3,4]:
+        """
+        if color is not None and len(color) not in [3, 4]:
             raise Exception(f"Color for {self.name} only has {len(color)} elements.  Expected 3 or 4." +
-                             "(last one, alpha, being optional)")
+                            "(last one, alpha, being optional)")
         elif color is not None:
             for x in color:
                 if x is None or x < 0 or x > 255:
@@ -128,12 +129,14 @@ class satellite():
                      show_marker=True,
                      size=None,
                      color=None,
-                     outlineColor=[255, 255, 255, 128],
+                     outlineColor=None,
                      outlineWidth=2,
                      rebuild=False):
-        '''
+        """
         Creates the satellite marker (i.e. billboard)
-        '''
+        """
+        if outlineColor is None:
+            outlineColor = [255, 255, 255, 128]
         if self.czmlMarker is None or rebuild:
             image = image or self.image
             size = size or self.marker_scale
@@ -157,14 +160,18 @@ class satellite():
                     font='11pt Lucida Console',
                     hOrigin='LEFT',
                     vOrigin='CENTER',
-                    outlineColor=[0, 0, 0, 255],
+                    outlineColor=None,
                     outlineWidth=2,
-                    pixelOffset={"cartesian2": [12, 0]},
+                    pixelOffset=None,
                     style='FILL_AND_OUTLINE',
                     rebuild=False):
-        '''
+        """
         Creates the satellite label
-        '''
+        """
+        if pixelOffset is None:
+            pixelOffset = {"cartesian2": [12, 0]}
+        if outlineColor is None:
+            outlineColor = [0, 0, 0, 255]
         if self.czmlLabel is None or rebuild:
             self.czmlLabel = Label(text=self.name, show=show or self.show_label)
             self.czmlLabel.fillColor = {"rgba": color or self.color}
@@ -188,15 +195,15 @@ class satellite():
                    start_time=None,
                    end_time=None,
                    rebuild=False):
-        '''
+        """
         Creates the satellite path
-        '''
+        """
         if self.czmlPath is None or rebuild:
             if interval is None:
                 interval = self.start_time.isoformat() + "/" + self.end_time.isoformat()
 
             self.czmlPath = Path()
-            self.czmlPath.show=[{"interval": interval, "boolean": show or self.show_path}]
+            self.czmlPath.show = [{"interval": interval, "boolean": show or self.show_path}]
             self.czmlPath.width = width
             self.czmlPath.material = {"solidColor": {"color": {"rgba": color or self.color}}}
             self.czmlPath.resolution = resolution
@@ -211,15 +218,15 @@ class satellite():
     def build_position(self,
                        start_time=None,
                        end_time=None,
-                       interpolationAlgorithm = "LAGRANGE",
-                       interpolationDegree = 5,
-                       referenceFrame = "INERTIAL",
+                       interpolationAlgorithm="LAGRANGE",
+                       interpolationDegree=5,
+                       referenceFrame="INERTIAL",
                        tle_object=None,
                        step=300,
                        rebuild=False):
-        '''
+        """
         Creates the satellite positions and settings
-        '''
+        """
         start_time = start_time or self.start_time
         end_time = end_time or self.end_time
         tle_object = tle_object or self.tle_obj
@@ -231,11 +238,11 @@ class satellite():
             self.czmlPosition.referenceFrame = referenceFrame
             self.czmlPosition.epoch = start_time.isoformat()
 
-            number_of_positions = int((end_time - start_time).total_seconds()/300)
-            number_of_positions += 5 # so there is more than 1
-            time_step=0
+            number_of_positions = int((end_time - start_time).total_seconds() / 300)
+            number_of_positions += 5  # so there is more than 1
+            time_step = 0
 
-            positions=[]
+            positions = []
             for _ in range(number_of_positions):
                 current_time = start_time + timedelta(seconds=time_step)
                 eci_position, _ = tle_object.propagate(current_time.year, current_time.month,
@@ -251,20 +258,20 @@ class satellite():
         return self.czmlPosition
 
     def get_orbital_time(self):
-        '''
+        """
         Extracts the number of orbits per day from the tle and calcualtes the
         time per orbit in minutes
-        '''
-        return (24.0/float(self.tle[1][52:63]))*60.0
+        """
+        return (24.0 / float(self.tle[1][52:63])) * 60.0
 
     def build_lead_trail_times(self, start_time=None, end_time=None):
-        '''
+        """
         Builds the lead and trail time for the orbit path
-        '''
+        """
         start_time = start_time or self.start_time
         end_time = end_time or self.end_time
 
-        minutes_in_sim = int((end_time - start_time).total_seconds()/60)
+        minutes_in_sim = int((end_time - start_time).total_seconds() / 60)
         left_over_minutes = minutes_in_sim % self.get_orbital_time()
         number_of_full_orbits = math.floor(minutes_in_sim / self.get_orbital_time())
         sp_start = start_time
@@ -272,8 +279,8 @@ class satellite():
         sp_interval = (sp_start.isoformat() + '/' + sp_end.isoformat())
         orbital_time_in_seconds = (self.get_orbital_time() * 60.0)
 
-        lead_times=[]
-        trail_times=[]
+        lead_times = []
+        trail_times = []
         for _ in range(number_of_full_orbits + 1):
             lead_times.append({
                 "interval": sp_interval,
@@ -298,13 +305,13 @@ class satellite():
         return lead_times, trail_times
 
     def build_lead_time(self, start_time=None, end_time=None):
-        '''
+        """
         Builds the lead time for the orbit path
-        '''
+        """
         start_time = start_time or self.start_time
         end_time = end_time or self.end_time
 
-        minutes_in_sim = int((end_time - start_time).total_seconds()/60)
+        minutes_in_sim = int((end_time - start_time).total_seconds() / 60)
         left_over_minutes = minutes_in_sim % self.get_orbital_time()
         number_of_full_orbits = math.floor(minutes_in_sim / self.get_orbital_time())
         sp_start = start_time
@@ -312,7 +319,7 @@ class satellite():
         sp_interval = (sp_start.isoformat() + '/' + sp_end.isoformat())
         orbital_time_in_seconds = (self.get_orbital_time() * 60.0)
 
-        lead_times=[]
+        lead_times = []
         for _ in range(number_of_full_orbits + 1):
             lead_times.append({
                 "interval": sp_interval,
@@ -329,13 +336,13 @@ class satellite():
         return lead_times
 
     def build_trail_time(self, start_time=None, end_time=None):
-        '''
+        """
         Builds the trail time for the orbit path
-        '''
+        """
         start_time = start_time or self.start_time
         end_time = end_time or self.end_time
 
-        minutes_in_sim = int((end_time - start_time).total_seconds()/60)
+        minutes_in_sim = int((end_time - start_time).total_seconds() / 60)
         left_over_minutes = minutes_in_sim % self.get_orbital_time()
         number_of_full_orbits = math.floor(minutes_in_sim / self.get_orbital_time())
         sp_start = start_time
@@ -343,7 +350,7 @@ class satellite():
         sp_interval = (sp_start.isoformat() + '/' + sp_end.isoformat())
         orbital_time_in_seconds = (self.get_orbital_time() * 60.0)
 
-        trail_times=[]
+        trail_times = []
         for _ in range(number_of_full_orbits + 1):
             trail_times.append({
                 "interval": sp_interval,
@@ -359,17 +366,18 @@ class satellite():
             sp_interval = (sp_start.isoformat() + '/' + sp_end.isoformat())
         return trail_times
 
+
 class satellite_czml():
-    '''
+    """
     Generates the CZML document used by Cesium for plotting Satellites
     using TLE entries
-    '''
+    """
 
-    start_time = datetime.utcnow().replace(tzinfo=pytz.UTC)
+    start_time = datetime.now(timezone.utc)
     end_time = start_time + timedelta(hours=24)
     speed_multiplier = 60
     default_seed = 0
-    ignore_bad_tles=False
+    ignore_bad_tles = False
 
     satellites = {}
 
@@ -378,34 +386,34 @@ class satellite_czml():
                  use_default_image=True, marker_scale_list=None, speed_multiplier=None,
                  show_label=True, show_path=True, use_utc=True, seed=None,
                  ignore_bad_tles=False):
-        '''
+        """
         Initialize satellite_czml object
-        '''
+        """
 
         # Set the seed now before we generate colors
         self.set_seed(seed)
 
         # Set speed multiplier
         self.set_speed_multiplier(speed_multiplier)
-            
+
         # Validate the inputs and default to list of None's if None
-        if satellite_list==None and tle_list==None:
+        if satellite_list is None and tle_list is None:
             raise TypeError("Missing a required argument: 'tle_list' or 'satellite_list'")
         elif satellite_list is not None:
             self.start_time = satellite_list[0].start_time
             self.end_time = satellite_list[0].end_time
-            
+
             for sat in satellite_list:
                 self.add_satellite(sat)
         else:
             ex_len = len(tle_list)
-            name_list        = self.__check_list(ex_len, name_list, 'name_list')
+            name_list = self.__check_list(ex_len, name_list, 'name_list')
             description_list = self.__check_list(ex_len, description_list, 'description_list')
-            color_list       = self.__check_list(ex_len, color_list, 'color_list')
-            image_list       = self.__check_list(ex_len, image_list, 'image_list')
+            color_list = self.__check_list(ex_len, color_list, 'color_list')
+            image_list = self.__check_list(ex_len, image_list, 'image_list')
             marker_scale_list = self.__check_list(ex_len, marker_scale_list, 'marker_scale_list')
 
-            if start_time != None or end_time != None:
+            if start_time is not None or end_time is not None:
                 self.set_start_end_time(start_time or self.start_time,
                                         end_time or self.end_time)
 
@@ -413,7 +421,7 @@ class satellite_czml():
             self.ignore_bad_tles = ignore_bad_tles
 
             # Create Satellite for each TLE in list
-            for i,tle in enumerate(tle_list):
+            for i, tle in enumerate(tle_list):
                 try:
                     sat = satellite(tle=tle,
                                     name=name_list[i],
@@ -433,12 +441,12 @@ class satellite_czml():
                         raise Exception(f'Failed to create the satellite object: {name_list[i]}\nError:\n{e}')
 
     def __check_list(self, tle_len, lst, lst_name=None):
-        '''
+        """
         Checks that the list contains the same number of elements
         as the number of TLEs. If None, default to a list of Nones.
-        '''
-        if lst != None and len(lst) != tle_len:
-            if lst_name != None:
+        """
+        if lst is not None and len(lst) != tle_len:
+            if lst_name is not None:
                 lst_name = 'list'
             raise Exception(f"Number of elements in {lst_name} is {len(lst)} " +
                             f"and doesn't match number of TLEs: {tle_len}")
@@ -446,30 +454,30 @@ class satellite_czml():
         return lst or [None for x in range(tle_len)]
 
     def add_satellite(self, sat):
-        '''
+        """
         Adds (or updates) instance of Satellite
-        '''
+        """
         self.satellites[sat.id] = sat
         return True
 
     def get_satellite(self, id):
-        '''
+        """
         Returns instance of Satellite
-        '''
+        """
         return self.satellites[id]
 
     def remove_satellite(self, id):
-        '''
+        """
         Removes instance of Satellite
-        '''
+        """
         del self.satellites[id]
         return True
 
     def set_start_end_time(self, start_time, end_time, set_utc=True):
-        '''
+        """
         Sets the start and end time
-        '''
-        if set_utc == True:
+        """
+        if set_utc:
             start_time = start_time.replace(tzinfo=pytz.UTC)
             end_time = end_time.replace(tzinfo=pytz.UTC)
         self.start_time = start_time
@@ -478,23 +486,23 @@ class satellite_czml():
         return True
 
     def set_speed_multiplier(self, speed):
-        '''
+        """
         Sets the speed multiplier (how fast the satellites move)
-        '''
+        """
         self.speed_multiplier = speed or self.speed_multiplier
         return True
 
     def set_seed(self, seed):
-        '''
+        """
         Set the random seed. Only effects satellites not yet added.
-        '''
+        """
         random.seed(seed or self.default_seed)
         return True
 
     def get_czml(self):
-        '''
+        """
         Returns a CZML string
-        '''
+        """
 
         # Initialize the CZML document
         interval = self.start_time.isoformat() + "/" + self.end_time.isoformat()
